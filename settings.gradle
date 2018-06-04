@@ -1,0 +1,3 @@
+rootProject.name = 'sensorhub-driver-noisesensor'
+
+include 'sensorhub-driver-weather'

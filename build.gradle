@@ -1,0 +1,6 @@
+
+description = 'OSH noise sensor Modules'
+
+allprojects  {
+  version = '1.0.0-SNAPSHOT'
+}
