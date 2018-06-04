@@ -48,6 +48,9 @@ public class WeatherConfig extends SensorConfig
     
     @DisplayInfo(desc="Station Location")
     public LLALocation location = new LLALocation();
+
+    @DisplayInfo(label="Http server url", desc = "Pull CSV records from this url")
+    public String httpStationUrl = "http://127.0.0.1:8085/weather";
     
     
     public WeatherConfig()

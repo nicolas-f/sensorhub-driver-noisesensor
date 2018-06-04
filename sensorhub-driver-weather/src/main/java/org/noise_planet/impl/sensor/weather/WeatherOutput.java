@@ -32,15 +32,18 @@
 */
 package org.noise_planet.impl.sensor.weather;
 
+import net.opengis.swe.v20.*;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
 import org.sensorhub.api.sensor.SensorDataEvent;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
-import net.opengis.swe.v20.DataBlock;
-import net.opengis.swe.v20.DataComponent;
-import net.opengis.swe.v20.DataEncoding;
-import net.opengis.swe.v20.Quantity;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+
 import org.vast.swe.SWEHelper;
 
 
@@ -89,56 +92,50 @@ public class WeatherOutput extends AbstractSensorOutput<WeatherSensor>
         
         // add time, temperature, pressure, wind speed and wind direction fields
         weatherData.addComponent("time", fac.newTimeStampIsoUTC());
-        weatherData.addComponent("temperature", fac.newQuantity(SWEHelper.getPropertyUri("AirTemperature"), "Air Temperature", null, "Cel"));
-        weatherData.addComponent("pressure", fac.newQuantity(SWEHelper.getPropertyUri("AtmosphericPressure"), "Air Pressure", null, "hPa"));
-        weatherData.addComponent("windSpeed", fac.newQuantity(SWEHelper.getPropertyUri("WindSpeed"), "Wind Speed", null, "m/s"));
-        
-        // for wind direction, we also specify a reference frame
-        Quantity q = fac.newQuantity(SWEHelper.getPropertyUri("WindDirection"), "Wind Direction", null, "deg");
-        q.setReferenceFrame("http://sensorml.com/ont/swe/property/NED");
-        q.setAxisID("z");
-        weatherData.addComponent("windDirection", q);
-     
+        weatherData.addComponent("temperaturein", fac.newQuantity(SWEHelper.getPropertyUri("AirTemperature"), "System Temperature", null, "Cel", DataType.FLOAT));
+        weatherData.addComponent("temperatureout", fac.newQuantity(SWEHelper.getPropertyUri("AirTemperature"), "Outdoor temperature", null, "Cel", DataType.FLOAT));
+        weatherData.addComponent("outhumidity", fac.newQuantity(SWEHelper.getPropertyUri("HumidityValue"), "Outdoor humidity", null, "percent", DataType.SHORT));
+
         // also generate encoding definition
         weatherEncoding = fac.newTextEncoding(",", "\n");
     }
 
     
     private void sendMeasurement()
-    {                
-        // generate new weather values
-        double time = System.currentTimeMillis() / 1000.;
-        
-        // temperature; value will increase or decrease by less than 0.1 deg
-        temp += variation(temp, tempRef, 0.001, 0.1);
-        
-        // pressure; value will increase or decrease by less than 20 hPa
-        press += variation(press, pressRef, 0.001, 0.1);
-        
-        // wind speed; keep positive
-        // vary value between +/- 10 m/s
-        windSpeed += variation(windSpeed, windSpeedRef, 0.001, 0.1);
-        windSpeed = windSpeed < 0.0 ? 0.0 : windSpeed; 
-        
-        // wind direction; keep between 0 and 360 degrees
-        windDir += 1.0 * (2.0 * Math.random() - 1.0);
-        windDir = windDir < 0.0 ? windDir+360.0 : windDir;
-        windDir = windDir > 360.0 ? windDir-360.0 : windDir;
-        
-        parentSensor.getLogger().trace(String.format("temp=%5.2f, press=%4.2f, wind speed=%5.2f, wind dir=%3.1f", temp, press, windSpeed, windDir));
-        
-        // build and publish datablock
-        DataBlock dataBlock = weatherData.createDataBlock();
-        dataBlock.setDoubleValue(0, time);
-        dataBlock.setDoubleValue(1, temp);
-        dataBlock.setDoubleValue(2, press);
-        dataBlock.setDoubleValue(3, windSpeed);
-        dataBlock.setDoubleValue(4, windDir);
-        
-        // update latest record and send event
-        latestRecord = dataBlock;
-        latestRecordTime = System.currentTimeMillis();
-        eventHandler.publishEvent(new SensorDataEvent(latestRecordTime, WeatherOutput.this, dataBlock));
+    {
+        try {
+            URL url = new URL(getParentModule().getConfiguration().httpStationUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String line;
+            List<DataBlock> dataBlockList = new ArrayList<>();
+            while ((line = rd.readLine()) != null) {
+                StringTokenizer tokenizer = new StringTokenizer(line, ",");
+                DataBlock dataBlock = weatherData.createDataBlock();
+                // Time UTC
+                dataBlock.setLongValue(Long.valueOf(tokenizer.nextToken()));
+                // Temp in
+                dataBlock.setFloatValue(Float.valueOf(tokenizer.nextToken()));
+                // Temp out
+                dataBlock.setFloatValue(Float.valueOf(tokenizer.nextToken()));
+                // Humidity
+                dataBlock.setShortValue(Short.valueOf(tokenizer.nextToken()));
+                dataBlockList.add(dataBlock);
+            }
+            rd.close();
+            if(!dataBlockList.isEmpty()) {
+                // update latest record and send event
+                latestRecord = dataBlockList.get(dataBlockList.size() - 1);
+                latestRecordTime = dataBlockList.get(dataBlockList.size() - 1).getLongValue(0);
+                eventHandler.publishEvent(new SensorDataEvent(latestRecordTime,
+                        WeatherOutput.this, dataBlockList.toArray(new DataBlock[dataBlockList.size()])));
+            }
+        } catch (IOException ex) {
+            parentSensor.getLogger().error("Error while receiving data", ex);
+        }
+
+
     }
     
     
@@ -180,8 +177,8 @@ public class WeatherOutput extends AbstractSensorOutput<WeatherSensor>
     @Override
     public double getAverageSamplingPeriod()
     {
-    	// sample every 1 second
-        return 1.0;
+    	// approximate update interval in second
+        return 60.0;
     }
 
 
