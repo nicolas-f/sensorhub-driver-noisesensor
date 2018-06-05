@@ -52,4 +52,19 @@ public class WeatherDescriptor extends JarModuleProvider implements IModuleProvi
     {
         return WeatherConfig.class;
     }
+
+    @Override
+    public String getModuleName() {
+        return "Weather driver HTTP";
+    }
+
+    @Override
+    public String getModuleDescription() {
+        return "Pull weather data using http get";
+    }
+
+    @Override
+    public String getProviderName() {
+        return "Ifsttar Wi6labs LS2N";
+    }
 }
