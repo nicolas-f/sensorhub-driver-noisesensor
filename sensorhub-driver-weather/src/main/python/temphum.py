@@ -62,7 +62,7 @@ class SensorServer(HTTPServer):
         # Init sensor link
 
     def unix_time_millis(self):
-        return (datetime.datetime.utcnow() - datetime.datetime.utcfromtimestamp(0)).total_seconds() * 1000.0
+        return (datetime.datetime.utcnow() - datetime.datetime.utcfromtimestamp(0)).total_seconds()
 
     def read_sensor(self):
 
