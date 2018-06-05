@@ -80,12 +80,30 @@ public class WeatherOutput extends AbstractSensorOutput<WeatherSensor>
         weatherData.addComponent("time", fac.newTimeStampIsoUTC());
         weatherData.addComponent("temperaturein", fac.newQuantity(SWEHelper.getPropertyUri("AirTemperature"), "System Temperature", null, "Cel", DataType.FLOAT));
         weatherData.addComponent("temperatureout", fac.newQuantity(SWEHelper.getPropertyUri("AirTemperature"), "Outdoor temperature", null, "Cel", DataType.FLOAT));
-        weatherData.addComponent("outhumidity", fac.newQuantity(SWEHelper.getPropertyUri("HumidityValue"), "Outdoor humidity", null, "percent", DataType.SHORT));
+        weatherData.addComponent("outhumidity", fac.newQuantity(SWEHelper.getPropertyUri("HumidityValue"), "Outdoor humidity", null, "percent", DataType.FLOAT));
 
         // also generate encoding definition
         weatherEncoding = fac.newTextEncoding(",", "\n");
     }
 
+    public List<DataBlock> parseResult(BufferedReader rd) throws IOException {
+        List<DataBlock> dataBlockList = new ArrayList<>();
+        String line;
+        while ((line = rd.readLine()) != null) {
+            StringTokenizer tokenizer = new StringTokenizer(line, ",");
+            DataBlock dataBlock = weatherData.createDataBlock();
+            // Time UTC
+            dataBlock.setDoubleValue(0, Long.valueOf(tokenizer.nextToken()));
+            // Temp in
+            dataBlock.setFloatValue(1, Float.valueOf(tokenizer.nextToken()));
+            // Temp out
+            dataBlock.setFloatValue(2, Float.valueOf(tokenizer.nextToken()));
+            // Humidity
+            dataBlock.setFloatValue(3, Float.valueOf(tokenizer.nextToken()));
+            dataBlockList.add(dataBlock);
+        }
+        return dataBlockList;
+    }
     
     private void sendMeasurement()
     {
@@ -94,26 +112,12 @@ public class WeatherOutput extends AbstractSensorOutput<WeatherSensor>
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line;
-            List<DataBlock> dataBlockList = new ArrayList<>();
-            while ((line = rd.readLine()) != null) {
-                StringTokenizer tokenizer = new StringTokenizer(line, ",");
-                DataBlock dataBlock = weatherData.createDataBlock();
-                // Time UTC
-                dataBlock.setLongValue(Long.valueOf(tokenizer.nextToken()));
-                // Temp in
-                dataBlock.setFloatValue(Float.valueOf(tokenizer.nextToken()));
-                // Temp out
-                dataBlock.setFloatValue(Float.valueOf(tokenizer.nextToken()));
-                // Humidity
-                dataBlock.setShortValue(Short.valueOf(tokenizer.nextToken()));
-                dataBlockList.add(dataBlock);
-            }
+            List<DataBlock> dataBlockList = parseResult(rd);
             rd.close();
             if(!dataBlockList.isEmpty()) {
                 // update latest record and send event
                 latestRecord = dataBlockList.get(dataBlockList.size() - 1);
-                latestRecordTime = dataBlockList.get(dataBlockList.size() - 1).getLongValue(0);
+                latestRecordTime = (long)dataBlockList.get(dataBlockList.size() - 1).getDoubleValue(0);
                 eventHandler.publishEvent(new SensorDataEvent(latestRecordTime,
                         WeatherOutput.this, dataBlockList.toArray(new DataBlock[dataBlockList.size()])));
             }

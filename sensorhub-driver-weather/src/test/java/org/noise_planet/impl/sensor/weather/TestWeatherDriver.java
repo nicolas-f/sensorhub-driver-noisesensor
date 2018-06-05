@@ -30,15 +30,21 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 */
-package org.noise_planet.test.impl.sensor.weather;
+package org.noise_planet.impl.sensor.weather;
 
+import net.opengis.swe.v20.DataBlock;
 import org.junit.After;
 import org.junit.Before;
-import org.noise_planet.impl.sensor.weather.WeatherConfig;
-import org.noise_planet.impl.sensor.weather.WeatherSensor;
+import org.junit.Test;
 import org.sensorhub.api.common.SensorHubException;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
 import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
 
 
 public class TestWeatherDriver
@@ -54,6 +60,15 @@ public class TestWeatherDriver
         
         driver = new WeatherSensor();
         driver.init(config);
+    }
+
+    @Test
+    public void testParse() throws IOException {
+        StringReader stringReader = new StringReader("1528201993328,52.08,24.64,58.1\n");
+
+        List<DataBlock> data = driver.dataInterface.parseResult(new BufferedReader(stringReader));
+        assertEquals(1, data.size());
+        assertEquals(1528201993328., data.get(0).getDoubleValue(0), 1e-2);
     }
     
 
