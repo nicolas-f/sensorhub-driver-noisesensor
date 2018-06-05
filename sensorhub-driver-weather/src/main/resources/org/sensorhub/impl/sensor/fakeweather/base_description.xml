@@ -13,19 +13,19 @@ xsi:schemaLocation="http://www.opengis.net/sensorML/2.0 http://schemas.opengis.n
          <sml:identifier>
             <sml:Term definition="urn:ogc:def:identifier:OGC:longname">
                <sml:label>Long Name</sml:label>
-               <sml:value>Davis Vantage Pro2 Weather Station</sml:value>
+               <sml:value>SHT3x-DIS Humidity and Temperature Sensor</sml:value>
             </sml:Term>
          </sml:identifier>
          <sml:identifier>
             <sml:Term definition="urn:ogc:def:identifier:OGC:shortname">
                <sml:label>Short Name</sml:label>
-               <sml:value>Vantage Pro2</sml:value>
+               <sml:value>SHT3x-DIS</sml:value>
             </sml:Term>
          </sml:identifier>
          <sml:identifier>
             <sml:Term definition="urn:ogc:def:identifier:OGC:manufacturer">
                <sml:label>Manufacturer</sml:label>
-               <sml:value>Davis Instruments</sml:value>
+               <sml:value>Sensirion</sml:value>
             </sml:Term>
          </sml:identifier>
       </sml:IdentifierList>
@@ -49,7 +49,7 @@ xsi:schemaLocation="http://www.opengis.net/sensorML/2.0 http://schemas.opengis.n
    </sml:classification>
    <sml:validTime>
     <gml:TimePeriod gml:id="T1">
-      <gml:beginPosition>2015-08-02T20:00:00Z</gml:beginPosition>
+      <gml:beginPosition>2018-06-05T09:00:00Z</gml:beginPosition>
       <gml:endPosition indeterminatePosition="now"/>
     </gml:TimePeriod>
   </sml:validTime>
@@ -58,14 +58,14 @@ xsi:schemaLocation="http://www.opengis.net/sensorML/2.0 http://schemas.opengis.n
          <sml:contact xlink:role="http://sensorml.com/def/role/Manufacturer">
             <gmd:CI_ResponsibleParty>
                <gmd:organisationName>
-                  <gco:CharacterString>Davis Instruments Corp.</gco:CharacterString>
+                  <gco:CharacterString>SENSIRION AG</gco:CharacterString>
                </gmd:organisationName>
                <gmd:contactInfo>
                   <gmd:CI_Contact>
                      <gmd:phone>
                         <gmd:CI_Telephone>
                            <gmd:voice>
-                              <gco:CharacterString>+1 (510) 732-7814</gco:CharacterString>
+                              <gco:CharacterString>+41 44 306 40 00</gco:CharacterString>
                            </gmd:voice>
                         </gmd:CI_Telephone>
                      </gmd:phone>
@@ -75,16 +75,16 @@ xsi:schemaLocation="http://www.opengis.net/sensorML/2.0 http://schemas.opengis.n
                               <gco:CharacterString>3465 Diablo Avenue</gco:CharacterString>
                            </gmd:deliveryPoint>
                            <gmd:city>
-                              <gco:CharacterString>Hayward</gco:CharacterString>
+                              <gco:CharacterString>Laubisruetistr.</gco:CharacterString>
                            </gmd:city>
                            <gmd:administrativeArea>
-                              <gco:CharacterString>CA</gco:CharacterString>
+                              <gco:CharacterString>CH</gco:CharacterString>
                            </gmd:administrativeArea>
                            <gmd:postalCode>
-                              <gco:CharacterString>94545</gco:CharacterString>
+                              <gco:CharacterString>CH-8712</gco:CharacterString>
                            </gmd:postalCode>
                            <gmd:country>
-                              <gco:CharacterString>USA</gco:CharacterString>
+                              <gco:CharacterString>Switzerland</gco:CharacterString>
                            </gmd:country>
                         </gmd:CI_Address>
                      </gmd:address>
@@ -97,7 +97,7 @@ xsi:schemaLocation="http://www.opengis.net/sensorML/2.0 http://schemas.opengis.n
    </sml:contacts>
    <sml:position>
       <gml:Point gml:id="stationLocation" srsName="http://www.opengis.net/def/crs/EPSG/0/4326" srsDimension="2">
-         <gml:pos>47.8 88.56</gml:pos>
+         <gml:pos>47.75 -3.366</gml:pos>
       </gml:Point>
    </sml:position>
 </sml:PhysicalSystem>

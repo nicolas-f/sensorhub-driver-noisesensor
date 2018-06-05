@@ -40,14 +40,10 @@ import org.vast.sensorML.SMLHelper;
 
 /**
  * <p>
- * Driver implementation outputting simulated weather data by randomly
- * increasing or decreasing temperature, pressure, wind speed, and
- * wind direction.  Serves as a simple sensor to deploy as well as
- * a simple example of a sensor driver.
+ * Driver implementation outputting weather data (temperature, humidity)
  * </p>
  *
- * @author Mike Botts <mike.botts@botts-inc.com>
- * @since Dec 24, 2014
+ * @author Nicolas Fortin, UMRAE Ifsttar
  */
 public class WeatherSensor extends AbstractSensorModule<WeatherConfig>
 {
@@ -78,7 +74,7 @@ public class WeatherSensor extends AbstractSensorModule<WeatherConfig>
             super.updateSensorDescription();
             
             if (!sensorDescription.isSetDescription())
-                sensorDescription.setDescription("Simulated weather station generating realistic pseudo-random measurements");
+                sensorDescription.setDescription("Weather station gathering measurements from http endpoint");
             
             SMLHelper helper = new SMLHelper(sensorDescription);
             helper.addSerialNumber(config.serialNumber);

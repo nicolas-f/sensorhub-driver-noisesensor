@@ -43,7 +43,7 @@ public class WeatherConfig extends SensorConfig
     
     @Required
     @DisplayInfo(desc="Serial number of the station used to generate its unique ID")
-    public String serialNumber = "0123456879";
+    public String serialNumber = "B8-27-EB-74-CD-A8";
     
     
     @DisplayInfo(desc="Station Location")

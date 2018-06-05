@@ -49,25 +49,11 @@ import org.vast.swe.SWEHelper;
 
 public class WeatherOutput extends AbstractSensorOutput<WeatherSensor>
 {
-    DataComponent weatherData;
-    DataEncoding weatherEncoding;
-    Timer timer;
-    Random rand = new Random();
-    
-    // reference values around which actual values vary
-    double tempRef = 20.0;
-    double pressRef = 1013.0;
-    double windSpeedRef = 5.0;
-    double directionRef = 0.0;
-    
-    // initialize then keep new values for each measurement
-    double temp = tempRef;
-    double press = pressRef;
-    double windSpeed = windSpeedRef;
-    double windDir = directionRef;
+    private DataComponent weatherData;
+    private DataEncoding weatherEncoding;
+    private Timer timer;
 
-    
-    public WeatherOutput(WeatherSensor parentSensor)
+    WeatherOutput(WeatherSensor parentSensor)
     {
         super(parentSensor);
     }
@@ -136,12 +122,6 @@ public class WeatherOutput extends AbstractSensorOutput<WeatherSensor>
         }
 
 
-    }
-    
-    
-    private double variation(double val, double ref, double dampingCoef, double noiseSigma)
-    {
-        return -dampingCoef*(val - ref) + noiseSigma*rand.nextGaussian();
     }
 
 
