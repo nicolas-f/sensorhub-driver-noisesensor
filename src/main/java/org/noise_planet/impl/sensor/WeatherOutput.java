@@ -103,11 +103,15 @@ public class WeatherOutput extends AbstractSensorOutput<NoiseMonitoringSensor>
         }
         return dataBlockList;
     }
-    
+
+    public String getUrl() {
+        return getParentModule().getConfiguration().httpWeatherStationUrl;
+    }
+
     private void sendMeasurement()
     {
         try {
-            URL url = new URL(getParentModule().getConfiguration().httpWeatherStationUrl);
+            URL url = new URL(getUrl());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -130,7 +134,7 @@ public class WeatherOutput extends AbstractSensorOutput<NoiseMonitoringSensor>
 
     protected void start()
     {
-        if (timer != null)
+        if (timer != null || getUrl().isEmpty())
             return;
         timer = new Timer();
         

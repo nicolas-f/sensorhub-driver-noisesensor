@@ -83,7 +83,8 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "Leq", null, "dB", DataType.FLOAT));
         acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "LAeq", null, "dB(A)", DataType.FLOAT));
         for(double freq : freqs) {
-            acousticData.addComponent(String.format("leq_%.1f", freq), fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "Leq", null, "dB", DataType.FLOAT));
+            String name = String.format("leq_%.1f", freq);
+            acousticData.addComponent(name, fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), name, null, "dB", DataType.FLOAT));
         }
 
         // also generate encoding definition
@@ -111,11 +112,15 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         }
         return dataBlockList;
     }
+
+    public String getUrl() {
+        return getParentModule().getConfiguration().httpFastAcousticStationUrl;
+    }
     
     private void sendMeasurement()
     {
         try {
-            URL url = new URL(getParentModule().getConfiguration().httpFastAcousticStationUrl);
+            URL url = new URL(getUrl());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -138,7 +143,7 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
 
     protected void start()
     {
-        if (timer != null)
+        if (timer != null || getUrl().isEmpty())
             return;
         timer = new Timer();
         

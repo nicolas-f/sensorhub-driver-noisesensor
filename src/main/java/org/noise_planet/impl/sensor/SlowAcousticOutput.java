@@ -100,11 +100,15 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         }
         return dataBlockList;
     }
+
+    public String getUrl() {
+        return getParentModule().getConfiguration().httpSlowAcousticStationUrl;
+    }
     
     private void sendMeasurement()
     {
         try {
-            URL url = new URL(getParentModule().getConfiguration().httpSlowAcousticStationUrl);
+            URL url = new URL(getUrl());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -127,7 +131,7 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
 
     protected void start()
     {
-        if (timer != null)
+        if (timer != null || getUrl().isEmpty())
             return;
         timer = new Timer();
         

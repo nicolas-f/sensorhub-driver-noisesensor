@@ -56,6 +56,9 @@ public class TestNoiseMonitoring
     public void init() throws Exception
     {
         config = new NoiseMonitoringConfig();
+        config.httpFastAcousticStationUrl = "";
+        config.httpSlowAcousticStationUrl = "";
+        config.httpWeatherStationUrl = "";
         config.id = UUID.randomUUID().toString();
         
         driver = new NoiseMonitoringSensor();
