@@ -49,6 +49,7 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
 {
     WeatherOutput weatherDataInterface;
     SlowAcousticOutput slowAcousticDataInterface;
+    FastAcousticOutput fastAcousticDataInterface;
 
     
     
@@ -58,16 +59,19 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         super.init();
         
         // generate identifiers
-        generateUniqueID("urn:osh:sensor:simweather:", config.serialNumber);
-        generateXmlID("WEATHER_STATION_", config.serialNumber);
+        generateUniqueID("urn:osh:sensor:noisemonitoring:", config.serialNumber);
+        generateXmlID("NOISE_MONITORING_STATION_", config.serialNumber);
         
         // init main data interface
         weatherDataInterface = new WeatherOutput(this);
         slowAcousticDataInterface = new SlowAcousticOutput(this);
+        fastAcousticDataInterface = new FastAcousticOutput(this);
         addOutput(weatherDataInterface, false);
         addOutput(slowAcousticDataInterface, false);
+        addOutput(fastAcousticDataInterface, false);
         weatherDataInterface.init();
         slowAcousticDataInterface.init();
+        fastAcousticDataInterface.init();
     }
 
 
@@ -96,6 +100,9 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         if (slowAcousticDataInterface != null) {
             slowAcousticDataInterface.start();
         }
+        if (fastAcousticDataInterface != null) {
+            fastAcousticDataInterface.start();
+        }
     }
     
 
@@ -107,6 +114,9 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         }
         if(slowAcousticDataInterface != null) {
             slowAcousticDataInterface.stop();
+        }
+        if (fastAcousticDataInterface != null) {
+            fastAcousticDataInterface.start();
         }
     }
     

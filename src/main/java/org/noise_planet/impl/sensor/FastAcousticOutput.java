@@ -32,9 +32,13 @@
 */
 package org.noise_planet.impl.sensor;
 
-import net.opengis.swe.v20.*;
-import org.sensorhub.impl.sensor.AbstractSensorOutput;
+import net.opengis.swe.v20.DataBlock;
+import net.opengis.swe.v20.DataComponent;
+import net.opengis.swe.v20.DataEncoding;
+import net.opengis.swe.v20.DataType;
 import org.sensorhub.api.sensor.SensorDataEvent;
+import org.sensorhub.impl.sensor.AbstractSensorOutput;
+import org.vast.swe.SWEHelper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -43,16 +47,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
-import org.vast.swe.SWEHelper;
 
-
-public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSensor>
+public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSensor>
 {
     private DataComponent acousticData;
     private DataEncoding acousticEncoding;
     private Timer timer;
+    private static final double[] freqs = new double[]{20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500};
 
-    SlowAcousticOutput(NoiseMonitoringSensor parentSensor)
+    FastAcousticOutput(NoiseMonitoringSensor parentSensor)
     {
         super(parentSensor);
     }
@@ -61,7 +64,7 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
     @Override
     public String getName()
     {
-        return "acoustic_slow";
+        return "acoustic_fast";
     }
 
 
@@ -79,6 +82,9 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.addComponent("time", fac.newTimeStampIsoUTC());
         acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "Leq", null, "dB", DataType.FLOAT));
         acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "LAeq", null, "dB(A)", DataType.FLOAT));
+        for(double freq : freqs) {
+            acousticData.addComponent(String.format("leq_%.1f", freq), fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "Leq", null, "dB", DataType.FLOAT));
+        }
 
         // also generate encoding definition
         acousticEncoding = fac.newTextEncoding(",", "\n");
@@ -89,13 +95,18 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         String line;
         while ((line = rd.readLine()) != null) {
             StringTokenizer tokenizer = new StringTokenizer(line, ",");
+            int idCol = 0;
             DataBlock dataBlock = acousticData.createDataBlock();
             // Time UTC
-            dataBlock.setDoubleValue(0, Double.valueOf(tokenizer.nextToken()));
+            dataBlock.setDoubleValue(idCol++, Double.valueOf(tokenizer.nextToken()));
             // Leq
-            dataBlock.setFloatValue(1, Float.valueOf(tokenizer.nextToken()));
+            dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
             // Laeq
-            dataBlock.setFloatValue(2, Float.valueOf(tokenizer.nextToken()));
+            dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
+            // Leq by freq
+            for(int i = 0; i < freqs.length; i++) {
+                dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
+            }
             dataBlockList.add(dataBlock);
         }
         return dataBlockList;
@@ -104,7 +115,7 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
     private void sendMeasurement()
     {
         try {
-            URL url = new URL(getParentModule().getConfiguration().httpSlowAcousticStationUrl);
+            URL url = new URL(getParentModule().getConfiguration().httpFastAcousticStationUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -115,7 +126,7 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
                 latestRecord = dataBlockList.get(dataBlockList.size() - 1);
                 latestRecordTime = (long)dataBlockList.get(dataBlockList.size() - 1).getDoubleValue(0);
                 eventHandler.publishEvent(new SensorDataEvent(latestRecordTime,
-                        SlowAcousticOutput.this, dataBlockList.toArray(new DataBlock[dataBlockList.size()])));
+                        FastAcousticOutput.this, dataBlockList.toArray(new DataBlock[dataBlockList.size()])));
             }
         } catch (IOException ex) {
             parentSensor.getLogger().error("Error while receiving data", ex);

@@ -107,7 +107,7 @@ public class WeatherOutput extends AbstractSensorOutput<NoiseMonitoringSensor>
     private void sendMeasurement()
     {
         try {
-            URL url = new URL(getParentModule().getConfiguration().httpStationUrl);
+            URL url = new URL(getParentModule().getConfiguration().httpWeatherStationUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));

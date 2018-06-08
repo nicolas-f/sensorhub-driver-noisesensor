@@ -55,12 +55,12 @@ public class NoiseMonitoringDescriptor extends JarModuleProvider implements IMod
 
     @Override
     public String getModuleName() {
-        return "Weather driver HTTP";
+        return "NoiseMonitoring driver over HTTP";
     }
 
     @Override
     public String getModuleDescription() {
-        return "Pull weather data using http get";
+        return "Pull noise and weather monitoring data using http get";
     }
 
     @Override
