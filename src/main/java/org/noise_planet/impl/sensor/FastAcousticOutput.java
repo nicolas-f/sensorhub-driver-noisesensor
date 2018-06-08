@@ -45,6 +45,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.*;
 
 
@@ -83,7 +85,9 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "Leq", null, "dB", DataType.FLOAT));
         acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "LAeq", null, "dB(A)", DataType.FLOAT));
         for(double freq : freqs) {
-            String name = String.format("leq_%.1f", freq);
+            DecimalFormat format = (DecimalFormat) NumberFormat.getNumberInstance(Locale.ROOT);
+            format.applyPattern("0.#");
+            String name = "leq_" + format.format(freq);
             acousticData.addComponent(name, fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), name, null, "dB", DataType.FLOAT));
         }
 
