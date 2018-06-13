@@ -77,8 +77,8 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         
         // add time, temperature, pressure, wind speed and wind direction fields
         acousticData.addComponent("time", fac.newTimeStampIsoUTC());
-        acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "Leq", null, "dB", DataType.FLOAT));
-        acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "LAeq", null, "dB(A)", DataType.FLOAT));
+        acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplSlow"), "Leq", null, "dB", DataType.FLOAT));
+        acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplSlow"), "LAeq", null, "dB(A)", DataType.FLOAT));
 
         // also generate encoding definition
         acousticEncoding = fac.newTextEncoding(",", "\n");

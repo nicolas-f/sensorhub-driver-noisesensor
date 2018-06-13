@@ -82,13 +82,13 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         
         // add time, temperature, pressure, wind speed and wind direction fields
         acousticData.addComponent("time", fac.newTimeStampIsoUTC());
-        acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "Leq", null, "dB", DataType.FLOAT));
-        acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), "LAeq", null, "dB(A)", DataType.FLOAT));
+        acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "Leq", null, "dB", DataType.FLOAT));
+        acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "LAeq", null, "dB(A)", DataType.FLOAT));
         for(double freq : freqs) {
             DecimalFormat format = (DecimalFormat) NumberFormat.getNumberInstance(Locale.ROOT);
             format.applyPattern("0.#");
             String name = "leq_" + format.format(freq);
-            acousticData.addComponent(name, fac.newQuantity(SWEHelper.getPropertyUri("SoundLevel"), name, null, "dB", DataType.FLOAT));
+            acousticData.addComponent(name, fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), name, null, "dB", DataType.FLOAT));
         }
 
         // also generate encoding definition
