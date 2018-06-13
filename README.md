@@ -9,7 +9,7 @@ This driver fetch CSV data using http protocol. Retrieved data are pushed into O
 This driver read the system temperature (cpu or motherboard), external temperature and humidity each minute.
 
 Http server source code:
-https://github.com/nicolas-f/sensorhub-driver-noisesensor/blob/master/sensorhub-driver-weather/src/main/python/temphum.py
+https://github.com/nicolas-f/sensorhub-driver-noisesensor/blob/v1.3.1/src/main/python/temphum.py
 
 # Slow acoustic driver
 
