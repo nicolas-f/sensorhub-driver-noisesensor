@@ -1,7 +1,5 @@
-apply plugin: 'java'
+apply from: gradle.oshCoreDir + '/common.gradle'
 apply plugin: 'osgi'
-
-
 
 description = 'Weather and Acoustic Sensor'
 group = 'org.noise_planet'
@@ -12,18 +10,11 @@ sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 repositories {
-    flatDir {
-        dirs 'libs'
-    }
     maven { url "http://repo.maven.apache.org/maven2" }
 }
 
 dependencies {
-  compile 'org.sensorhub:sensorhub-core:1.3.2'
-  compile 'org.vast.opengis:swe-common-core:1.3.2'
-  compile 'org.vast.opengis:sensorml-core:1.3.2'
-  compile 'org.vast.opengis:swe-common-om:1.3.2'
-  compile 'ch.qos.logback:logback-classic:1.1.2'
+  compile 'org.sensorhub:sensorhub-core:' + oshCoreVersion
   testCompile 'junit:junit:4.11'
 }
 

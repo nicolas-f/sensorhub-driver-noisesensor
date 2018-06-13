@@ -1,0 +1,10 @@
+rootProject.name = 'sensorhub-driver-monitoring'
+
+gradle.ext.oshCoreDir = "$rootDir/../osh-core"
+
+// include osh-core and osh-comm builds only if not part of larger build
+// this is needed to avoid nested composite builds
+// comment this to build against published artifacts
+if (gradle.parent == null) {
+  includeBuild gradle.oshCoreDir
+}
