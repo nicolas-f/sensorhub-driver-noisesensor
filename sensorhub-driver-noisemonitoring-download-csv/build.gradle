@@ -1,0 +1,29 @@
+description = 'Weather and Acoustic Sensor'
+group = 'org.noise_planet'
+ext.details = 'Acoustic and weather sensor (leq, humidity and temperature)'
+version = '1.0.0'
+
+dependencies {
+  compile 'org.sensorhub:sensorhub-core:' + oshCoreVersion
+  testCompile 'junit:junit:4.11'
+}
+
+// add info to OSGi manifest
+jar {
+  manifest {
+    instruction 'Bundle-Vendor', 'Ifsttar Wi6labs LS2N'
+    instruction 'Bundle-Activator', 'org.noise_planet.impl.sensor.Activator'
+  }
+}
+
+// add info to maven pom
+ext.pom >>= {
+  developers {
+    developer {
+      id 'nicolasf'
+      name 'Nicolas Fortin'
+      organization 'Ifsttar UMRAE'
+      organizationUrl 'http://www.ifsttar.fr' 
+    }
+  }
+}
