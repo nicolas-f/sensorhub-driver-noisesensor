@@ -126,6 +126,7 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         try {
             URL url = new URL(getUrl());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(getParentModule().getConfiguration().httpTimeout);
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             List<DataBlock> dataBlockList = parseResult(rd);

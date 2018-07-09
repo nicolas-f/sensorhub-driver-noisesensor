@@ -44,7 +44,9 @@ public class NoiseMonitoringConfig extends SensorConfig
     @Required
     @DisplayInfo(desc="Serial number of the station used to generate its unique ID")
     public String serialNumber = "B8-27-EB-74-CD-A8";
-    
+
+    @DisplayInfo(desc = "Connection timeout to fetch the data in ms")
+    public int httpTimeout = 5000;
     
     @DisplayInfo(desc="Station Location")
     public LLALocation location = new LLALocation();
