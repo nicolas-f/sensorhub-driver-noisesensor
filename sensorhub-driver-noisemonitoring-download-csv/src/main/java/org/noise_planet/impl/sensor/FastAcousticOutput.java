@@ -32,12 +32,15 @@
 */
 package org.noise_planet.impl.sensor;
 
+import net.opengis.swe.v20.DataArray;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
+import net.opengis.swe.v20.DataRecord;
 import net.opengis.swe.v20.DataType;
 import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
+import org.vast.data.DataArrayImpl;
 import org.vast.swe.SWEHelper;
 
 import java.io.BufferedReader;
@@ -55,7 +58,7 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
     private DataComponent acousticData;
     private DataEncoding acousticEncoding;
     private Timer timer;
-    private static final double[] freqs = new double[]{20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500};
+    public static final float[] freqs = new float[]{20, 25, 31.5f, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500};
 
     FastAcousticOutput(NoiseMonitoringSensor parentSensor)
     {
@@ -75,7 +78,7 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         SWEHelper fac = new SWEHelper();
         
         // build SWE Common record structure
-    	acousticData = fac.newDataRecord(5);
+    	acousticData = fac.newDataRecord();
         acousticData.setName(getName());
         acousticData.setDefinition("http://sensorml.com/ont/swe/property/Acoustic");
         acousticData.setDescription("Acoustic indicators measurements");
@@ -84,12 +87,16 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.addComponent("time", fac.newTimeStampIsoUTC());
         acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "Leq", null, "dB", DataType.FLOAT));
         acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "LAeq", null, "dB(A)", DataType.FLOAT));
-        for(double freq : freqs) {
-            DecimalFormat format = (DecimalFormat) NumberFormat.getNumberInstance(Locale.ROOT);
-            format.applyPattern("0.#");
-            String name = "leq_" + format.format(freq);
-            acousticData.addComponent(name, fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), name, null, "dB", DataType.FLOAT));
-        }
+
+        DataRecord nestedRec = fac.newDataRecord(2);
+        nestedRec.addComponent("freq", fac.newQuantity(SWEHelper.getPropertyUri("frequency"), "freq", null, "Hz", DataType.FLOAT));
+        nestedRec.addComponent("spl", fac.newQuantity(SWEHelper.getPropertyUri("spl"), "spl", null, "dB", DataType.FLOAT));
+
+        DataArray recordDesc = fac.newDataArray(freqs.length);
+        recordDesc.setName("spectrum");
+        recordDesc.setDefinition("urn:spectrum:third-octave");
+        recordDesc.setElementType("elt", nestedRec);
+        acousticData.addComponent("spectrum", recordDesc);
 
         // also generate encoding definition
         acousticEncoding = fac.newTextEncoding(",", "\n");
@@ -108,8 +115,10 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
             dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
             // Laeq
             dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
+
             // Leq by freq
             for(int i = 0; i < freqs.length; i++) {
+                dataBlock.setFloatValue(idCol++, freqs[i]);
                 dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
             }
             dataBlockList.add(dataBlock);

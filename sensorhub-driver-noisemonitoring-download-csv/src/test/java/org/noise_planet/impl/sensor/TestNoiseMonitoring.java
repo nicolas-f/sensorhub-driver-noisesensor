@@ -84,7 +84,8 @@ public class TestNoiseMonitoring
         assertEquals(1528448320.970, data.get(9).getDoubleValue(0), 1e-2);
         assertEquals(5.39, data.get(0).getDoubleValue(1), 1e-2);
         assertEquals(4.40, data.get(9).getDoubleValue(1), 1e-2);
-        assertEquals(-11.94, data.get(9).getDoubleValue(31), 1e-2);
+        // Get last spl value of the spectrum
+        assertEquals(-11.94, data.get(9).getDoubleValue(3 + FastAcousticOutput.freqs.length * 2 - 1), 1e-2);
 
     }
 
