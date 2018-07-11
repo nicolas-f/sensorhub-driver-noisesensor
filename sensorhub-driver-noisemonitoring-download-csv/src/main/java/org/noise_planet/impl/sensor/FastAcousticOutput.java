@@ -84,19 +84,17 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.setDescription("Acoustic indicators measurements");
         
         // add time, temperature, pressure, wind speed and wind direction fields
+        // add time, temperature, pressure, wind speed and wind direction fields
         acousticData.addComponent("time", fac.newTimeStampIsoUTC());
         acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "Leq", null, "dB", DataType.FLOAT));
         acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "LAeq", null, "dB(A)", DataType.FLOAT));
+        for(double freq : freqs) {
+            DecimalFormat format = (DecimalFormat) NumberFormat.getNumberInstance(Locale.ROOT);
+            format.applyPattern("0.#");
+            String name = "leq_" + format.format(freq);
+            acousticData.addComponent(name, fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), name, null, "dB", DataType.FLOAT));
+        }
 
-        DataRecord nestedRec = fac.newDataRecord(2);
-        nestedRec.addComponent("freq", fac.newQuantity(SWEHelper.getPropertyUri("frequency"), "freq", null, "Hz", DataType.FLOAT));
-        nestedRec.addComponent("spl", fac.newQuantity(SWEHelper.getPropertyUri("spl"), "spl", null, "dB", DataType.FLOAT));
-
-        DataArray recordDesc = fac.newDataArray(freqs.length);
-        recordDesc.setName("spectrum");
-        recordDesc.setDefinition("urn:spectrum:third-octave");
-        recordDesc.setElementType("elt", nestedRec);
-        acousticData.addComponent("spectrum", recordDesc);
 
         // also generate encoding definition
         acousticEncoding = fac.newTextEncoding(",", "\n");
@@ -118,7 +116,6 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
 
             // Leq by freq
             for(int i = 0; i < freqs.length; i++) {
-                dataBlock.setFloatValue(idCol++, freqs[i]);
                 dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
             }
             dataBlockList.add(dataBlock);
