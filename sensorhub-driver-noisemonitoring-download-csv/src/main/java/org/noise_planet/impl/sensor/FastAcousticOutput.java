@@ -32,6 +32,7 @@
 */
 package org.noise_planet.impl.sensor;
 
+import net.opengis.swe.v20.Count;
 import net.opengis.swe.v20.DataArray;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
@@ -40,14 +41,17 @@ import net.opengis.swe.v20.DataRecord;
 import net.opengis.swe.v20.DataType;
 import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
+import org.vast.data.CountImpl;
 import org.vast.data.DataArrayImpl;
 import org.vast.swe.SWEHelper;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -58,6 +62,8 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
     private DataComponent acousticData;
     private DataEncoding acousticEncoding;
     private Timer timer;
+    public static final int FAST_COUNT_IN_DATARECORD = 8;
+    private List<String> cachedLines = new ArrayList<>(FAST_COUNT_IN_DATARECORD);
     public static final float[] freqs = new float[]{20, 25, 31.5f, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500};
 
     FastAcousticOutput(NoiseMonitoringSensor parentSensor)
@@ -82,15 +88,17 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.setName(getName());
         acousticData.setDefinition("http://sensorml.com/ont/swe/property/Acoustic");
         acousticData.setDescription("Acoustic indicators measurements");
-        
-        // add time, temperature, pressure, wind speed and wind direction fields
+
+        Count elementCount = fac.newCount();
+        elementCount.setValue(FAST_COUNT_IN_DATARECORD); // FAST_COUNT_IN_DATARECORDx125ms
+
         // add time, temperature, pressure, wind speed and wind direction fields
         acousticData.addComponent("time", fac.newTimeStampIsoUTC());
-        acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "Leq", null, "dB", DataType.FLOAT));
-        acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "LAeq", null, "dB(A)", DataType.FLOAT));
+        acousticData.addComponent("leq", fac.newArray(elementCount, "leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "Leq", null, "dB", DataType.FLOAT)));
+        acousticData.addComponent("laeq", fac.newArray(elementCount, "laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "LAeq", null, "dB(A)", DataType.FLOAT)));
         for(double freq : freqs) {
             String name = "leq_" + Double.valueOf(freq).intValue();
-            acousticData.addComponent(name, fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), name, null, "dB", DataType.FLOAT));
+            acousticData.addComponent(name, fac.newArray(elementCount, "leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), name, null, "dB", DataType.FLOAT)));
         }
 
 
@@ -98,25 +106,43 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticEncoding = fac.newTextEncoding(",", "\n");
     }
 
-    public List<DataBlock> parseResult(BufferedReader rd) throws IOException {
+    public List<DataBlock> parseResult(List<String> cachedLines) throws IOException {
+        if(cachedLines.size() < FAST_COUNT_IN_DATARECORD) {
+            return new ArrayList<>();
+        }
         List<DataBlock> dataBlockList = new ArrayList<>();
-        String line;
-        while ((line = rd.readLine()) != null) {
+        DataBlock dataBlock = acousticData.createDataBlock();
+        int storedResults = 0;
+        int idCol = 0;
+        while (!cachedLines.isEmpty()) {
+            String line = cachedLines.remove(0);
             StringTokenizer tokenizer = new StringTokenizer(line, ",");
-            int idCol = 0;
-            DataBlock dataBlock = acousticData.createDataBlock();
-            // Time UTC
-            dataBlock.setDoubleValue(idCol++, Double.valueOf(tokenizer.nextToken()));
+            if(storedResults == 0) {
+                // Time UTC
+                dataBlock.setDoubleValue(idCol++, Double.valueOf(tokenizer.nextToken()));
+            } else {
+                tokenizer.nextToken();
+            }
             // Leq
             dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
             // Laeq
             dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
 
             // Leq by freq
-            for(int i = 0; i < freqs.length; i++) {
+            for (float freq : freqs) {
                 dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
             }
-            dataBlockList.add(dataBlock);
+            storedResults++;
+            if(storedResults == FAST_COUNT_IN_DATARECORD) {
+                dataBlockList.add(dataBlock);
+                if(cachedLines.size() < FAST_COUNT_IN_DATARECORD) {
+                    break;
+                } else {
+                    idCol = 0;
+                    storedResults = 0;
+                    dataBlock = acousticData.createDataBlock();
+                }
+            }
         }
         return dataBlockList;
     }
@@ -133,7 +159,11 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
             conn.setConnectTimeout(getParentModule().getConfiguration().httpTimeout);
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            List<DataBlock> dataBlockList = parseResult(rd);
+            String line;
+            while ((line = rd.readLine()) != null) {
+                cachedLines.add(line);
+            }
+            List<DataBlock> dataBlockList = parseResult(cachedLines);
             rd.close();
             if(!dataBlockList.isEmpty()) {
                 // update latest record and send event

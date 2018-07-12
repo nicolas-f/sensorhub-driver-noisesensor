@@ -41,6 +41,8 @@ import org.sensorhub.api.common.SensorHubException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,16 +79,23 @@ public class TestNoiseMonitoring
                 "1528448320.719,11.83,7.46,1.32,4.02,9.32,-3.58,-9.77,-10.44,-15.88,-18.90,-15.37,-16.49,-15.30,-8.05,-10.10,-15.85,-17.05,-15.65,-16.66,-18.33,-16.72,-18.17,-17.69,-17.69,-16.72,-16.44,-15.93,-14.21,-13.64,-12.77,-12.10\n" +
                 "1528448320.844,7.82,0.32,-4.42,-3.70,-4.20,-7.12,-9.31,-7.50,-13.02,-16.12,-10.22,-14.64,-14.39,-7.48,-9.73,-16.43,-17.78,-17.82,-17.38,-19.41,-18.07,-17.50,-18.49,-16.43,-15.25,-15.48,-14.62,-14.56,-13.71,-12.38,-12.06\n" +
                 "1528448320.970,4.40,-2.75,-11.35,-10.46,-10.40,-8.27,-14.47,-11.24,-15.45,-16.20,-10.49,-18.12,-16.95,-9.73,-9.38,-18.09,-17.99,-18.27,-17.47,-19.10,-17.90,-16.97,-17.72,-16.44,-15.67,-15.25,-15.37,-14.32,-13.49,-12.97,-11.94\n";
-        StringReader stringReader = new StringReader(dataStr);
-        List<DataBlock> data = driver.fastAcousticDataInterface.parseResult(new BufferedReader(stringReader));
-        assertEquals(10, data.size());
-        assertEquals(1528448319.844, data.get(0).getDoubleValue(0), 1e-2);
-        assertEquals(1528448320.970, data.get(9).getDoubleValue(0), 1e-2);
-        assertEquals(5.39, data.get(0).getDoubleValue(1), 1e-2);
-        assertEquals(4.40, data.get(9).getDoubleValue(1), 1e-2);
-        // Get last spl value of the spectrum
-        assertEquals(-11.94, data.get(9).getDoubleValue(31), 1e-2);
-
+        List<String> fastResults = new ArrayList<>(Arrays.asList(dataStr.split("\n")));
+        assertEquals(10, fastResults.size());
+        List<DataBlock> data = driver.fastAcousticDataInterface.parseResult(fastResults);
+        assertEquals(1, data.size());
+        assertEquals(2, fastResults.size());
+        DataBlock dataBlock = data.get(0);
+        // Time
+        assertEquals(1528448319.844, dataBlock.getDoubleValue(0), 1e-2);
+        // leq first 125 ms
+        assertEquals(5.39, dataBlock.getDoubleValue(1), 1e-2);
+        // laeq first 125 ms
+        assertEquals(-2.56, dataBlock.getDoubleValue(2), 1e-2);
+        int colCount = 2 + FastAcousticOutput.freqs.length;
+        // leq second 125 ms
+        assertEquals(6.22, dataBlock.getDoubleValue(1 + colCount), 1e-2);
+        // laeq third 125 ms
+        assertEquals(-1.37, dataBlock.getDoubleValue(1 + colCount * 2 + 1), 1e-2);
     }
 
     @Test
