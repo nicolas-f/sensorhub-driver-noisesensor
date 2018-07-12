@@ -62,7 +62,9 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
     private DataComponent acousticData;
     private DataEncoding acousticEncoding;
     private Timer timer;
+    // Number of Fast measurement to store into a Document
     public static final int FAST_COUNT_IN_DATARECORD = 8;
+    
     private List<String> cachedLines = new ArrayList<>(FAST_COUNT_IN_DATARECORD);
     public static final float[] freqs = new float[]{20, 25, 31.5f, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500};
 
