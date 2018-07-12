@@ -98,12 +98,21 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.addComponent("laeq", fac.newArray(elementCount, "laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "LAeq", null, "dB(A)", DataType.FLOAT)));
         for(double freq : freqs) {
             String name = "leq_" + Double.valueOf(freq).intValue();
-            acousticData.addComponent(name, fac.newArray(elementCount, "leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), name, null, "dB", DataType.FLOAT)));
+            acousticData.addComponent(name, fac.newArray(elementCount, name, fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), name, null, "dB", DataType.FLOAT)));
         }
 
 
         // also generate encoding definition
         acousticEncoding = fac.newTextEncoding(",", "\n");
+    }
+
+    static void initCacheValues(Map<String, List<Float>> cachedValues) {
+        cachedValues.clear();
+        cachedValues.put("leq", new ArrayList<Float>(FAST_COUNT_IN_DATARECORD));
+        cachedValues.put("laeq", new ArrayList<Float>(FAST_COUNT_IN_DATARECORD));
+        for (float freq : freqs) {
+            cachedValues.put(Float.valueOf(freq).toString(), new ArrayList<Float>(FAST_COUNT_IN_DATARECORD));
+        }
     }
 
     public List<DataBlock> parseResult(List<String> cachedLines) throws IOException {
@@ -112,6 +121,11 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         }
         List<DataBlock> dataBlockList = new ArrayList<>();
         DataBlock dataBlock = acousticData.createDataBlock();
+        Map<String, List<Float>> cachedValues = new HashMap<>();
+
+        // Init cache
+        initCacheValues(cachedValues);
+
         int storedResults = 0;
         int idCol = 0;
         while (!cachedLines.isEmpty()) {
@@ -124,22 +138,36 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
                 tokenizer.nextToken();
             }
             // Leq
-            dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
+            cachedValues.get("leq").add(Float.valueOf(tokenizer.nextToken()));
             // Laeq
-            dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
+            cachedValues.get("laeq").add(Float.valueOf(tokenizer.nextToken()));
 
             // Leq by freq
             for (float freq : freqs) {
-                dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
+                cachedValues.get(Float.valueOf(freq).toString()).add(Float.valueOf(tokenizer.nextToken()));
+                //dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
             }
             storedResults++;
             if(storedResults == FAST_COUNT_IN_DATARECORD) {
+                for(float val : cachedValues.get("leq")) {
+                    dataBlock.setFloatValue(idCol++, val);
+                }
+                for(float val : cachedValues.get("laeq")) {
+                    dataBlock.setFloatValue(idCol++, val);
+                }
+                for (float freq : freqs) {
+                    for(float val : cachedValues.get(Float.valueOf(freq).toString())) {
+                        dataBlock.setFloatValue(idCol++, val);
+                    }
+                }
+                // Push block
                 dataBlockList.add(dataBlock);
                 if(cachedLines.size() < FAST_COUNT_IN_DATARECORD) {
                     break;
                 } else {
                     idCol = 0;
                     storedResults = 0;
+                    initCacheValues(cachedValues);
                     dataBlock = acousticData.createDataBlock();
                 }
             }

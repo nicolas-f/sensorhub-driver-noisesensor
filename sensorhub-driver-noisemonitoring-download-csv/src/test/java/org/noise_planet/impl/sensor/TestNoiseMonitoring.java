@@ -69,6 +69,8 @@ public class TestNoiseMonitoring
 
     @Test
     public void testParseAcousticFast() throws IOException {
+        // Columns:
+        // timestamp, leq, laeq, leq 20 Hz, leq 25 Hz, ...
         final String dataStr = "1528448319.844,5.39,-2.56,-8.39,-10.37,-6.58,-8.92,-9.53,-13.65,-15.84,-14.94,-15.69,-12.82,-13.67,-6.18,-8.08,-17.82,-17.79,-16.94,-18.00,-18.53,-20.00,-18.04,-18.38,-18.54,-17.84,-16.38,-15.44,-14.39,-13.83,-13.45,-12.27\n" +
                 "1528448319.969,6.22,-1.20,-11.01,-13.61,-7.35,-7.79,-8.77,-10.69,-11.15,-14.03,-14.92,-13.64,-16.38,-10.21,-11.09,-17.53,-18.47,-15.55,-17.66,-18.30,-17.30,-17.15,-17.27,-15.31,-15.78,-15.62,-14.29,-14.25,-13.28,-12.64,-11.67\n" +
                 "1528448320.094,6.29,-1.37,-9.33,-9.92,-8.04,-6.39,-6.78,-9.16,-10.75,-14.97,-16.50,-12.35,-18.36,-6.25,-9.48,-19.16,-17.87,-16.54,-17.05,-19.48,-18.13,-18.08,-17.59,-17.52,-16.60,-16.65,-15.27,-14.57,-13.45,-12.57,-11.66\n" +
@@ -89,13 +91,12 @@ public class TestNoiseMonitoring
         assertEquals(1528448319.844, dataBlock.getDoubleValue(0), 1e-2);
         // leq first 125 ms
         assertEquals(5.39, dataBlock.getDoubleValue(1), 1e-2);
-        // laeq first 125 ms
-        assertEquals(-2.56, dataBlock.getDoubleValue(2), 1e-2);
-        int colCount = 2 + FastAcousticOutput.freqs.length;
         // leq second 125 ms
-        assertEquals(6.22, dataBlock.getDoubleValue(1 + colCount), 1e-2);
+        assertEquals(6.22, dataBlock.getDoubleValue(2), 1e-2);
+        // laeq first 125 ms
+        assertEquals(-2.56, dataBlock.getDoubleValue(FastAcousticOutput.FAST_COUNT_IN_DATARECORD + 1), 1e-2);
         // laeq third 125 ms
-        assertEquals(-1.37, dataBlock.getDoubleValue(1 + colCount * 2 + 1), 1e-2);
+        assertEquals(-1.37, dataBlock.getDoubleValue(FastAcousticOutput.FAST_COUNT_IN_DATARECORD + 3), 1e-2);
     }
 
     @Test
