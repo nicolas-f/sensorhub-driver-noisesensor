@@ -51,6 +51,11 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
     private DataComponent acousticData;
     private DataEncoding acousticEncoding;
     private Timer timer;
+    // Number of Slow measurement to store into a Document
+    public static final int SLOW_COUNT_IN_DATARECORD = 30;
+
+    private List<String> cachedLines = new ArrayList<>(SLOW_COUNT_IN_DATARECORD);
+
 
     SlowAcousticOutput(NoiseMonitoringSensor parentSensor)
     {
@@ -74,29 +79,71 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.setName(getName());
         acousticData.setDefinition("http://sensorml.com/ont/swe/property/Acoustic");
         acousticData.setDescription("Acoustic indicators measurements");
+
+        Count elementCount = fac.newCount();
+        elementCount.setValue(SLOW_COUNT_IN_DATARECORD); // FAST_COUNT_IN_DATARECORDx1s
         
         // add time, temperature, pressure, wind speed and wind direction fields
         acousticData.addComponent("time", fac.newTimeStampIsoUTC());
-        acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplSlow"), "Leq", null, "dB", DataType.FLOAT));
-        acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplSlow"), "LAeq", null, "dB(A)", DataType.FLOAT));
+        acousticData.addComponent("leq", fac.newArray(elementCount,"leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplSlow"), "Leq", null, "dB", DataType.FLOAT)));
+        acousticData.addComponent("laeq", fac.newArray(elementCount, "laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplSlow"), "LAeq", null, "dB(A)", DataType.FLOAT)));
 
         // also generate encoding definition
         acousticEncoding = fac.newTextEncoding(",", "\n");
     }
 
-    public List<DataBlock> parseResult(BufferedReader rd) throws IOException {
+    static void initCacheValues(Map<String, List<Float>> cachedValues) {
+        cachedValues.clear();
+        cachedValues.put("leq", new ArrayList<Float>(SLOW_COUNT_IN_DATARECORD));
+        cachedValues.put("laeq", new ArrayList<Float>(SLOW_COUNT_IN_DATARECORD));
+    }
+
+    public List<DataBlock> parseResult(List<String> cachedLines) throws IOException {
+        if(cachedLines.size() < SLOW_COUNT_IN_DATARECORD) {
+            return new ArrayList<>();
+        }
         List<DataBlock> dataBlockList = new ArrayList<>();
-        String line;
-        while ((line = rd.readLine()) != null) {
+        DataBlock dataBlock = acousticData.createDataBlock();
+        Map<String, List<Float>> cachedValues = new HashMap<>();
+
+        // Init cache
+        initCacheValues(cachedValues);
+
+        int storedResults = 0;
+        int idCol = 0;
+        while (!cachedLines.isEmpty()) {
+            String line = cachedLines.remove(0);
             StringTokenizer tokenizer = new StringTokenizer(line, ",");
-            DataBlock dataBlock = acousticData.createDataBlock();
-            // Time UTC
-            dataBlock.setDoubleValue(0, Double.valueOf(tokenizer.nextToken()));
+            if(storedResults == 0) {
+                // Time UTC
+                dataBlock.setDoubleValue(idCol++, Double.valueOf(tokenizer.nextToken()));
+            } else {
+                tokenizer.nextToken();
+            }
             // Leq
-            dataBlock.setFloatValue(1, Float.valueOf(tokenizer.nextToken()));
+            cachedValues.get("leq").add(Float.valueOf(tokenizer.nextToken()));
             // Laeq
-            dataBlock.setFloatValue(2, Float.valueOf(tokenizer.nextToken()));
-            dataBlockList.add(dataBlock);
+            cachedValues.get("laeq").add(Float.valueOf(tokenizer.nextToken()));
+
+            storedResults++;
+            if(storedResults == SLOW_COUNT_IN_DATARECORD) {
+                for(float val : cachedValues.get("leq")) {
+                    dataBlock.setFloatValue(idCol++, val);
+                }
+                for(float val : cachedValues.get("laeq")) {
+                    dataBlock.setFloatValue(idCol++, val);
+                }
+                // Push block
+                dataBlockList.add(dataBlock);
+                if(cachedLines.size() < SLOW_COUNT_IN_DATARECORD) {
+                    break;
+                } else {
+                    idCol = 0;
+                    storedResults = 0;
+                    initCacheValues(cachedValues);
+                    dataBlock = acousticData.createDataBlock();
+                }
+            }
         }
         return dataBlockList;
     }
@@ -113,7 +160,11 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
             conn.setConnectTimeout(getParentModule().getConfiguration().httpTimeout);
             conn.setRequestMethod("GET");
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            List<DataBlock> dataBlockList = parseResult(rd);
+            String line;
+            while ((line = rd.readLine()) != null) {
+                cachedLines.add(line);
+            }
+            List<DataBlock> dataBlockList = parseResult(cachedLines);
             rd.close();
             if(!dataBlockList.isEmpty()) {
                 // update latest record and send event

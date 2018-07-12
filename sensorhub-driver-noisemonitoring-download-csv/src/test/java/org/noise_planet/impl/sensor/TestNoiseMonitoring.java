@@ -111,21 +111,66 @@ public class TestNoiseMonitoring
 
     @Test
     public void testParseAcousticSlow() throws IOException {
-        StringReader stringReader = new StringReader("1528378833,25.17,17.29\n" +
-                "1528378834,34.90,28.13\n" +
-                "1528378835,28.44,22.93\n");
-
-        List<DataBlock> data = driver.slowAcousticDataInterface.parseResult(new BufferedReader(stringReader));
-        assertEquals(3, data.size());
-        assertEquals(1528378833, data.get(0).getDoubleValue(0), 1e-2);
-        assertEquals(1528378834, data.get(1).getDoubleValue(0), 1e-2);
-        assertEquals(1528378835, data.get(2).getDoubleValue(0), 1e-2);
-        assertEquals(25.17, data.get(0).getDoubleValue(1), 1e-2);
-        assertEquals(34.90, data.get(1).getDoubleValue(1), 1e-2);
-        assertEquals(28.44, data.get(2).getDoubleValue(1), 1e-2);
-        assertEquals(17.29, data.get(0).getDoubleValue(2), 1e-2);
-        assertEquals(28.13, data.get(1).getDoubleValue(2), 1e-2);
-        assertEquals(22.93, data.get(2).getDoubleValue(2), 1e-2);
+        String res = "1531405786,47.27,40.60\n" +
+                "1531405787,47.46,40.76\n" +
+                "1531405788,53.38,46.99\n" +
+                "1531405789,58.53,50.88\n" +
+                "1531405790,53.53,45.19\n" +
+                "1531405791,55.97,48.74\n" +
+                "1531405792,50.11,42.70\n" +
+                "1531405793,47.38,40.96\n" +
+                "1531405794,47.51,41.01\n" +
+                "1531405795,46.69,40.48\n" +
+                "1531405796,46.67,40.49\n" +
+                "1531405797,46.70,40.36\n" +
+                "1531405798,48.23,42.68\n" +
+                "1531405799,47.17,40.77\n" +
+                "1531405800,46.55,40.13\n" +
+                "1531405801,46.28,39.99\n" +
+                "1531405802,46.01,39.47\n" +
+                "1531405803,46.57,39.99\n" +
+                "1531405804,52.71,48.08\n" +
+                "1531405805,55.27,47.53\n" +
+                "1531405806,46.55,40.00\n" +
+                "1531405807,46.17,39.70\n" +
+                "1531405808,45.46,39.35\n" +
+                "1531405809,46.24,39.71\n" +
+                "1531405810,46.49,40.03\n" +
+                "1531405811,47.45,42.42\n" +
+                "1531405812,46.25,39.91\n" +
+                "1531405813,46.42,39.92\n" +
+                "1531405814,46.68,40.10\n" +
+                "1531405815,46.11,39.99\n" +
+                "1531405816,57.56,50.65\n" +
+                "1531405817,46.58,40.01\n" +
+                "1531405818,46.08,39.55\n" +
+                "1531405819,47.00,40.42\n" +
+                "1531405820,47.65,40.72\n" +
+                "1531405821,48.42,41.46\n" +
+                "1531405822,51.48,44.02\n" +
+                "1531405823,48.02,41.10\n" +
+                "1531405824,48.76,42.05\n" +
+                "1531405825,52.15,45.77\n" +
+                "1531405826,52.46,47.08\n" +
+                "1531405827,53.03,47.85\n" +
+                "1531405828,49.32,42.52\n" +
+                "1531405829,51.81,45.97\n" +
+                "1531405830,52.71,47.51\n" +
+                "1531405831,50.41,44.65\n" +
+                "1531405832,52.08,46.41";
+        List<String> slowResults = new ArrayList<>(Arrays.asList(res.split("\n")));
+        assertEquals(47, slowResults.size());
+        List<DataBlock> data = driver.slowAcousticDataInterface.parseResult(slowResults);
+        assertEquals(47 - SlowAcousticOutput.SLOW_COUNT_IN_DATARECORD, slowResults.size());
+        assertEquals(1, data.size());
+        DataBlock dataBlock = data.get(0);
+        assertEquals(1531405786, dataBlock.getDoubleValue(0), 1e-2);
+        assertEquals(47.27, dataBlock.getDoubleValue(1), 1e-2);
+        assertEquals(47.46, dataBlock.getDoubleValue(2), 1e-2);
+        assertEquals(53.38, dataBlock.getDoubleValue(3), 1e-2);
+        assertEquals(40.60, dataBlock.getDoubleValue(SlowAcousticOutput.SLOW_COUNT_IN_DATARECORD + 1), 1e-2);
+        assertEquals(40.76, dataBlock.getDoubleValue(SlowAcousticOutput.SLOW_COUNT_IN_DATARECORD + 2), 1e-2);
+        assertEquals(46.99, dataBlock.getDoubleValue(SlowAcousticOutput.SLOW_COUNT_IN_DATARECORD + 3), 1e-2);
     }
 
     @After
