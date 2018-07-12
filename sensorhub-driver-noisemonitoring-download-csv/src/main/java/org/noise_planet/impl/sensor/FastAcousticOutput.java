@@ -89,9 +89,7 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.addComponent("leq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "Leq", null, "dB", DataType.FLOAT));
         acousticData.addComponent("laeq", fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), "LAeq", null, "dB(A)", DataType.FLOAT));
         for(double freq : freqs) {
-            DecimalFormat format = (DecimalFormat) NumberFormat.getNumberInstance(Locale.ROOT);
-            format.applyPattern("0.#");
-            String name = "leq_" + format.format(freq);
+            String name = "leq_" + Double.valueOf(freq).intValue();
             acousticData.addComponent(name, fac.newQuantity(SWEHelper.getPropertyUri("dBsplFast"), name, null, "dB", DataType.FLOAT));
         }
 
