@@ -46,6 +46,7 @@ public class NoiseMonitoringConfig extends SensorConfig
     public String serialNumber = "B8-27-EB-74-CD-A8";
 
     @DisplayInfo(desc = "Connection timeout to fetch the data in ms")
+    @DisplayInfo.ValueRange(min = 1)
     public int httpTimeout = 5000;
     
     @DisplayInfo(desc="Station Location")
@@ -64,9 +65,11 @@ public class NoiseMonitoringConfig extends SensorConfig
     public String httpSlowAcousticStationUrl = "http://127.0.0.1:8090/slow";
 
     @DisplayInfo(label = "How many 125ms results to embed into one record")
+    @DisplayInfo.ValueRange(min = 1)
     public int fastValuesPerDataRecord = 80;
 
     @DisplayInfo(label = "How many 1s results to embed into one record")
+    @DisplayInfo.ValueRange(min = 1)
     public int slowValuesPerDataRecord = 10;
 
     public String getHttpWeatherStationUrl() {
