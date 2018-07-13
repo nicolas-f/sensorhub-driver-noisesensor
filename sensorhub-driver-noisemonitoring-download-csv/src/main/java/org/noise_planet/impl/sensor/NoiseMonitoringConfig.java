@@ -63,6 +63,12 @@ public class NoiseMonitoringConfig extends SensorConfig
     @Required
     public String httpSlowAcousticStationUrl = "http://127.0.0.1:8090/slow";
 
+    @DisplayInfo(label = "How many 125ms results to embed into one record")
+    public int fastValuesPerDataRecord = 80;
+
+    @DisplayInfo(label = "How many 1s results to embed into one record")
+    public int slowValuesPerDataRecord = 10;
+
     public String getHttpWeatherStationUrl() {
         return httpWeatherStationUrl;
     }

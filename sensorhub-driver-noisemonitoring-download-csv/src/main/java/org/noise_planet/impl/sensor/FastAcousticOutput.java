@@ -33,27 +33,19 @@
 package org.noise_planet.impl.sensor;
 
 import net.opengis.swe.v20.Count;
-import net.opengis.swe.v20.DataArray;
 import net.opengis.swe.v20.DataBlock;
 import net.opengis.swe.v20.DataComponent;
 import net.opengis.swe.v20.DataEncoding;
-import net.opengis.swe.v20.DataRecord;
 import net.opengis.swe.v20.DataType;
 import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorOutput;
-import org.vast.data.CountImpl;
-import org.vast.data.DataArrayImpl;
 import org.vast.swe.SWEHelper;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.*;
 
 
@@ -62,10 +54,9 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
     private DataComponent acousticData;
     private DataEncoding acousticEncoding;
     private Timer timer;
-    // Number of Fast measurement to store into a Document
-    public static final int FAST_COUNT_IN_DATARECORD = 8;
+    private int fastCountInDataRecord;
     
-    private List<String> cachedLines = new ArrayList<>(FAST_COUNT_IN_DATARECORD);
+    private List<String> cachedLines;
     public static final float[] freqs = new float[]{20, 25, 31.5f, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500};
 
     FastAcousticOutput(NoiseMonitoringSensor parentSensor)
@@ -83,6 +74,10 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
 
     protected void init()
     {
+        fastCountInDataRecord = getParentModule().getConfiguration().fastValuesPerDataRecord;
+
+        cachedLines = new ArrayList<>(fastCountInDataRecord);
+
         SWEHelper fac = new SWEHelper();
         
         // build SWE Common record structure
@@ -92,7 +87,7 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticData.setDescription("Acoustic indicators measurements");
 
         Count elementCount = fac.newCount();
-        elementCount.setValue(FAST_COUNT_IN_DATARECORD); // FAST_COUNT_IN_DATARECORDx125ms
+        elementCount.setValue(fastCountInDataRecord); // FAST_COUNT_IN_DATARECORDx125ms
 
         // add time, temperature, pressure, wind speed and wind direction fields
         acousticData.addComponent("time", fac.newTimeStampIsoUTC());
@@ -108,17 +103,17 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
         acousticEncoding = fac.newTextEncoding(",", "\n");
     }
 
-    static void initCacheValues(Map<String, List<Float>> cachedValues) {
+    void initCacheValues(Map<String, List<Float>> cachedValues) {
         cachedValues.clear();
-        cachedValues.put("leq", new ArrayList<Float>(FAST_COUNT_IN_DATARECORD));
-        cachedValues.put("laeq", new ArrayList<Float>(FAST_COUNT_IN_DATARECORD));
+        cachedValues.put("leq", new ArrayList<Float>(fastCountInDataRecord));
+        cachedValues.put("laeq", new ArrayList<Float>(fastCountInDataRecord));
         for (float freq : freqs) {
-            cachedValues.put(Float.valueOf(freq).toString(), new ArrayList<Float>(FAST_COUNT_IN_DATARECORD));
+            cachedValues.put(Float.valueOf(freq).toString(), new ArrayList<Float>(fastCountInDataRecord));
         }
     }
 
     public List<DataBlock> parseResult(List<String> cachedLines) throws IOException {
-        if(cachedLines.size() < FAST_COUNT_IN_DATARECORD) {
+        if(cachedLines.size() < fastCountInDataRecord) {
             return new ArrayList<>();
         }
         List<DataBlock> dataBlockList = new ArrayList<>();
@@ -150,7 +145,7 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
                 //dataBlock.setFloatValue(idCol++, Float.valueOf(tokenizer.nextToken()));
             }
             storedResults++;
-            if(storedResults == FAST_COUNT_IN_DATARECORD) {
+            if(storedResults == fastCountInDataRecord) {
                 for(float val : cachedValues.get("leq")) {
                     dataBlock.setFloatValue(idCol++, val);
                 }
@@ -164,7 +159,7 @@ public class FastAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
                 }
                 // Push block
                 dataBlockList.add(dataBlock);
-                if(cachedLines.size() < FAST_COUNT_IN_DATARECORD) {
+                if(cachedLines.size() < fastCountInDataRecord) {
                     break;
                 } else {
                     idCol = 0;

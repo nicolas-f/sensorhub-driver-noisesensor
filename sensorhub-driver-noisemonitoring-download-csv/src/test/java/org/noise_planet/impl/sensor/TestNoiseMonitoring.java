@@ -53,6 +53,9 @@ public class TestNoiseMonitoring
 {
     NoiseMonitoringSensor driver;
     NoiseMonitoringConfig config;
+
+    private static final int FAST_COUNT_IN_DATARECORD = 8;
+    private static final int SLOW_COUNT_IN_DATARECORD = 10;
         
     @Before
     public void init() throws Exception
@@ -60,6 +63,8 @@ public class TestNoiseMonitoring
         config = new NoiseMonitoringConfig();
         config.httpFastAcousticStationUrl = "";
         config.httpSlowAcousticStationUrl = "";
+        config.slowValuesPerDataRecord = SLOW_COUNT_IN_DATARECORD;
+        config.fastValuesPerDataRecord = FAST_COUNT_IN_DATARECORD;
         config.httpWeatherStationUrl = "";
         config.id = UUID.randomUUID().toString();
         
@@ -84,8 +89,8 @@ public class TestNoiseMonitoring
         List<String> fastResults = new ArrayList<>(Arrays.asList(dataStr.split("\n")));
         assertEquals(10, fastResults.size());
         List<DataBlock> data = driver.fastAcousticDataInterface.parseResult(fastResults);
-        assertEquals(1, data.size());
-        assertEquals(2, fastResults.size());
+        assertEquals(10 / FAST_COUNT_IN_DATARECORD, data.size());
+        assertEquals(10 % FAST_COUNT_IN_DATARECORD, fastResults.size());
         DataBlock dataBlock = data.get(0);
         // Time
         assertEquals(1528448319.844, dataBlock.getDoubleValue(0), 1e-2);
@@ -94,9 +99,9 @@ public class TestNoiseMonitoring
         // leq second 125 ms
         assertEquals(6.22, dataBlock.getDoubleValue(2), 1e-2);
         // laeq first 125 ms
-        assertEquals(-2.56, dataBlock.getDoubleValue(FastAcousticOutput.FAST_COUNT_IN_DATARECORD + 1), 1e-2);
+        assertEquals(-2.56, dataBlock.getDoubleValue(FAST_COUNT_IN_DATARECORD + 1), 1e-2);
         // laeq third 125 ms
-        assertEquals(-1.37, dataBlock.getDoubleValue(FastAcousticOutput.FAST_COUNT_IN_DATARECORD + 3), 1e-2);
+        assertEquals(-1.37, dataBlock.getDoubleValue(FAST_COUNT_IN_DATARECORD + 3), 1e-2);
     }
 
     @Test
@@ -161,16 +166,16 @@ public class TestNoiseMonitoring
         List<String> slowResults = new ArrayList<>(Arrays.asList(res.split("\n")));
         assertEquals(47, slowResults.size());
         List<DataBlock> data = driver.slowAcousticDataInterface.parseResult(slowResults);
-        assertEquals(47 - SlowAcousticOutput.SLOW_COUNT_IN_DATARECORD, slowResults.size());
-        assertEquals(1, data.size());
+        assertEquals(47 % SLOW_COUNT_IN_DATARECORD, slowResults.size());
+        assertEquals(47 / SLOW_COUNT_IN_DATARECORD, data.size());
         DataBlock dataBlock = data.get(0);
         assertEquals(1531405786, dataBlock.getDoubleValue(0), 1e-2);
         assertEquals(47.27, dataBlock.getDoubleValue(1), 1e-2);
         assertEquals(47.46, dataBlock.getDoubleValue(2), 1e-2);
         assertEquals(53.38, dataBlock.getDoubleValue(3), 1e-2);
-        assertEquals(40.60, dataBlock.getDoubleValue(SlowAcousticOutput.SLOW_COUNT_IN_DATARECORD + 1), 1e-2);
-        assertEquals(40.76, dataBlock.getDoubleValue(SlowAcousticOutput.SLOW_COUNT_IN_DATARECORD + 2), 1e-2);
-        assertEquals(46.99, dataBlock.getDoubleValue(SlowAcousticOutput.SLOW_COUNT_IN_DATARECORD + 3), 1e-2);
+        assertEquals(40.60, dataBlock.getDoubleValue(SLOW_COUNT_IN_DATARECORD + 1), 1e-2);
+        assertEquals(40.76, dataBlock.getDoubleValue(SLOW_COUNT_IN_DATARECORD + 2), 1e-2);
+        assertEquals(46.99, dataBlock.getDoubleValue(SLOW_COUNT_IN_DATARECORD + 3), 1e-2);
     }
 
     @After
