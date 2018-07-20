@@ -172,7 +172,7 @@ public class SlowAcousticOutput extends AbstractSensorOutput<NoiseMonitoringSens
                 // update latest record and send event
                 latestRecord = dataBlockList.get(dataBlockList.size() - 1);
                 latestRecordTime = (long)dataBlockList.get(dataBlockList.size() - 1).getDoubleValue(0);
-                eventHandler.publishEvent(new SensorDataEvent(latestRecordTime,
+                eventHandler.publishEvent(new SensorDataEvent(System.currentTimeMillis(),
                         SlowAcousticOutput.this, dataBlockList.toArray(new DataBlock[dataBlockList.size()])));
             }
         } catch (IOException ex) {
