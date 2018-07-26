@@ -33,9 +33,13 @@
 
 package org.noise_planet.impl.sensor;
 
+import net.opengis.swe.v20.DataBlock;
 import org.sensorhub.api.common.SensorHubException;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
 import org.vast.sensorML.SMLHelper;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -103,6 +107,9 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         if (fastAcousticDataInterface != null) {
             fastAcousticDataInterface.start();
         }
+
+        // Refresh sensor location
+        eventHandler.publishEvent(new SensorDataEvent(System.currentTimeMillis(), locationOutput, locationOutput.getLatestRecord()));
     }
     
 
