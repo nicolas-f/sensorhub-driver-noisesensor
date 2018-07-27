@@ -39,6 +39,8 @@ import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
 import org.vast.sensorML.SMLHelper;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -54,6 +56,8 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
     WeatherOutput weatherDataInterface;
     SlowAcousticOutput slowAcousticDataInterface;
     FastAcousticOutput fastAcousticDataInterface;
+    // Send sensor location after this delay in millisecond
+    private static final int LOCATION_UPDATE_DELAY = 15000;
 
     
     
@@ -107,9 +111,14 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         if (fastAcousticDataInterface != null) {
             fastAcousticDataInterface.start();
         }
-
-        // Refresh sensor location
-        eventHandler.publishEvent(new SensorDataEvent(System.currentTimeMillis(), locationOutput, locationOutput.getLatestRecord()));
+        new Timer().schedule(new TimerTask() {
+                                 @Override
+                                 public void run() {
+                                     // Refresh sensor location
+                                     eventHandler.publishEvent(new SensorDataEvent(System.currentTimeMillis(), locationOutput, locationOutput.getLatestRecord()));
+                                 }
+                             }
+                             , LOCATION_UPDATE_DELAY);
     }
     
 
