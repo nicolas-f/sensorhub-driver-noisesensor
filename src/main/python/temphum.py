@@ -112,11 +112,6 @@ class SensorServer(HTTPServer):
 
         return int(self.unix_time_millis()), system_temp, c_temp, humidity
 
-    def push_data(self, line):
-        self.fast.insert(0, line)
-        self.fast = self.fast[:100]
-
-
 class SensorHttpServe(BaseHTTPRequestHandler):
 
     def do_HEAD(self):
@@ -128,7 +123,16 @@ class SensorHttpServe(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/plain;charset=UTF-8')
         self.end_headers()
-        self.wfile.write(b'%d,%.2f,%.2f,%.1f\n' % self.server.read_sensor())
+        retry = 10
+        while True:
+            try:
+                self.wfile.write(b'%d,%.2f,%.2f,%.1f\n' % self.server.read_sensor())
+                break
+            except err:
+                time.sleep(0.1)
+                retry -= 1
+                if retry == 0:
+                    break
         return
 
 
