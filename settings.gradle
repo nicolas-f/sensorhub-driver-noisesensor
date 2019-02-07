@@ -1,0 +1,24 @@
+rootProject.name = 'sensorhub-driver-monitoring'
+
+gradle.ext.oshCoreDir = "$rootDir/../osh-core"
+gradle.ext.oshCommDir = "$rootDir/../osh-comm"
+gradle.ext.oshProcessDir = "$rootDir/../osh-processing"
+
+// include osh-core and osh-comm builds only if not part of larger build
+// this is needed to avoid nested composite builds
+// comment this to build against published artifacts
+if (gradle.parent == null) {
+  includeBuild gradle.oshCoreDir
+  includeBuild gradle.oshCommDir
+}
+
+// include all folders with build.gradle as subprojects
+PatternFilterable subprojects = fileTree(rootDir).include('**/build.gradle')
+subprojects.files.each { File f ->
+  File projectFolder = f.parentFile
+  if (projectFolder != rootDir) {
+    String projectName = projectFolder.name
+    include projectName
+    project(':' + projectName).projectDir = projectFolder
+  }
+}

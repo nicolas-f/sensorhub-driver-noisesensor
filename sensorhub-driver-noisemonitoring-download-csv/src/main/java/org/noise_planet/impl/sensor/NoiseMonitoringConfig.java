@@ -44,22 +44,33 @@ public class NoiseMonitoringConfig extends SensorConfig
     @Required
     @DisplayInfo(desc="Serial number of the station used to generate its unique ID")
     public String serialNumber = "B8-27-EB-74-CD-A8";
-    
+
+    @DisplayInfo(desc = "Connection timeout to fetch the data in ms")
+    @DisplayInfo.ValueRange(min = 1)
+    public int httpTimeout = 5000;
     
     @DisplayInfo(desc="Station Location")
     public LLALocation location = new LLALocation();
 
     @DisplayInfo(label="Http weather server url", desc = "Pull CSV records from this url")
-    @Required
     public String httpWeatherStationUrl = "http://127.0.0.1:8085/weather";
 
     @DisplayInfo(label="Http fast acoustic server url", desc = "Pull CSV records from this url")
-    @Required
     public String httpFastAcousticStationUrl = "http://127.0.0.1:8090/fast";
 
     @DisplayInfo(label="Http slow acoustic server url", desc = "Pull CSV records from this url")
-    @Required
     public String httpSlowAcousticStationUrl = "http://127.0.0.1:8090/slow";
+
+    @DisplayInfo(label="Http node state server url", desc = "Pull CSV records from this url")
+    public String httpStateStationUrl = "";
+
+    @DisplayInfo(label = "How many 125ms results to embed into one record")
+    @DisplayInfo.ValueRange(min = 1)
+    public int fastValuesPerDataRecord = 80;
+
+    @DisplayInfo(label = "How many 1s results to embed into one record")
+    @DisplayInfo.ValueRange(min = 1)
+    public int slowValuesPerDataRecord = 10;
 
     public String getHttpWeatherStationUrl() {
         return httpWeatherStationUrl;
@@ -71,6 +82,10 @@ public class NoiseMonitoringConfig extends SensorConfig
 
     public String getHttpSlowAcousticStationUrl() {
         return httpSlowAcousticStationUrl;
+    }
+
+    public String getHttpStateStationUrl() {
+        return httpStateStationUrl;
     }
 
     public NoiseMonitoringConfig()

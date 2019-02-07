@@ -1,36 +1,49 @@
-apply plugin: 'java'
-apply plugin: 'osgi'
+apply from: gradle.oshCoreDir + '/common.gradle'
+version = oshCoreVersion
+description = 'OSH sensors'
 
 
-
-description = 'Weather and Acoustic Sensor'
-group = 'org.noise_planet'
-ext.details = 'Acoustic and weather sensor (leq, humidity and temperature)'
-version = '1.0.0'
-
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-
-repositories {
-    flatDir {
-        dirs 'libs'
+subprojects {  
+  // inject all repositories from included builds if any
+  repositories.addAll(rootProject.repositories)
+  
+  // add project dependency to proper configuration depending on version
+  // this is used to build different zip distributions
+  afterEvaluate { p ->
+    rootProject.dependencies {
+      def dep = p.version.endsWith('SNAPSHOT') ? dev(p) : stable(p);
+      dep.exclude group: 'org.sensorhub'
     }
-    maven { url "http://repo.maven.apache.org/maven2" }
-}
-
-dependencies {
-  compile 'org.sensorhub:sensorhub-core:1.3.2'
-  compile 'org.vast.opengis:swe-common-core:1.3.2'
-  compile 'org.vast.opengis:sensorml-core:1.3.2'
-  compile 'org.vast.opengis:swe-common-om:1.3.2'
-  compile 'ch.qos.logback:logback-classic:1.1.2'
-  testCompile 'junit:junit:4.11'
-}
-
-// add info to OSGi manifest
-jar {
-  manifest {
-    instruction 'Bundle-Vendor', 'Ifsttar Wi6labs LS2N'
-    instruction 'Bundle-Activator', 'org.noise_planet.impl.sensor.Activator'
   }
 }
+
+
+// create one configuration for each distribution
+configurations {
+  stable
+  dev
+}
+
+  
+// distributions content
+distributions {
+  dev {
+    baseName = 'osh-sensors-dev'
+    contents {
+      into('lib') {
+        from project.configurations.dev
+      } 
+    }
+  }
+
+  stable {
+    baseName = 'osh-sensors-stable'
+    contents {
+      into('lib') {
+        from project.configurations.stable
+      } 
+    }
+  }
+}
+
+apply from: gradle.oshCoreDir + '/release.gradle'

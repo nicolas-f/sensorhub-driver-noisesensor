@@ -33,9 +33,15 @@
 
 package org.noise_planet.impl.sensor;
 
+import net.opengis.swe.v20.DataBlock;
 import org.sensorhub.api.common.SensorHubException;
+import org.sensorhub.api.sensor.SensorDataEvent;
 import org.sensorhub.impl.sensor.AbstractSensorModule;
 import org.vast.sensorML.SMLHelper;
+
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -50,6 +56,9 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
     WeatherOutput weatherDataInterface;
     SlowAcousticOutput slowAcousticDataInterface;
     FastAcousticOutput fastAcousticDataInterface;
+    StateOutput stateOutput;
+    // Send sensor location after this delay in millisecond
+    private static final int LOCATION_UPDATE_DELAY = 15000;
 
     
     
@@ -66,12 +75,15 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         weatherDataInterface = new WeatherOutput(this);
         slowAcousticDataInterface = new SlowAcousticOutput(this);
         fastAcousticDataInterface = new FastAcousticOutput(this);
+        stateOutput = new StateOutput(this);
         addOutput(weatherDataInterface, false);
         addOutput(slowAcousticDataInterface, false);
         addOutput(fastAcousticDataInterface, false);
+        addOutput(stateOutput, false);
         weatherDataInterface.init();
         slowAcousticDataInterface.init();
         fastAcousticDataInterface.init();
+        stateOutput.init();
     }
 
 
@@ -103,6 +115,14 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         if (fastAcousticDataInterface != null) {
             fastAcousticDataInterface.start();
         }
+        new Timer().schedule(new TimerTask() {
+                                 @Override
+                                 public void run() {
+                                     // Refresh sensor location
+                                     eventHandler.publishEvent(new SensorDataEvent(System.currentTimeMillis(), locationOutput, locationOutput.getLatestRecord()));
+                                 }
+                             }
+                             , LOCATION_UPDATE_DELAY);
     }
     
 
