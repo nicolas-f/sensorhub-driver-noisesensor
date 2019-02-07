@@ -53,16 +53,16 @@ public class NoiseMonitoringConfig extends SensorConfig
     public LLALocation location = new LLALocation();
 
     @DisplayInfo(label="Http weather server url", desc = "Pull CSV records from this url")
-    @Required
     public String httpWeatherStationUrl = "http://127.0.0.1:8085/weather";
 
     @DisplayInfo(label="Http fast acoustic server url", desc = "Pull CSV records from this url")
-    @Required
     public String httpFastAcousticStationUrl = "http://127.0.0.1:8090/fast";
 
     @DisplayInfo(label="Http slow acoustic server url", desc = "Pull CSV records from this url")
-    @Required
     public String httpSlowAcousticStationUrl = "http://127.0.0.1:8090/slow";
+
+    @DisplayInfo(label="Http node state server url", desc = "Pull CSV records from this url")
+    public String httpStateStationUrl = "";
 
     @DisplayInfo(label = "How many 125ms results to embed into one record")
     @DisplayInfo.ValueRange(min = 1)
@@ -82,6 +82,10 @@ public class NoiseMonitoringConfig extends SensorConfig
 
     public String getHttpSlowAcousticStationUrl() {
         return httpSlowAcousticStationUrl;
+    }
+
+    public String getHttpStateStationUrl() {
+        return httpStateStationUrl;
     }
 
     public NoiseMonitoringConfig()

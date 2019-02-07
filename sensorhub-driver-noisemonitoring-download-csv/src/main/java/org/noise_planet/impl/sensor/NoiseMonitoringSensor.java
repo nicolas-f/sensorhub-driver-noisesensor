@@ -56,6 +56,7 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
     WeatherOutput weatherDataInterface;
     SlowAcousticOutput slowAcousticDataInterface;
     FastAcousticOutput fastAcousticDataInterface;
+    StateOutput stateOutput;
     // Send sensor location after this delay in millisecond
     private static final int LOCATION_UPDATE_DELAY = 15000;
 
@@ -74,12 +75,15 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         weatherDataInterface = new WeatherOutput(this);
         slowAcousticDataInterface = new SlowAcousticOutput(this);
         fastAcousticDataInterface = new FastAcousticOutput(this);
+        stateOutput = new StateOutput(this);
         addOutput(weatherDataInterface, false);
         addOutput(slowAcousticDataInterface, false);
         addOutput(fastAcousticDataInterface, false);
+        addOutput(stateOutput, false);
         weatherDataInterface.init();
         slowAcousticDataInterface.init();
         fastAcousticDataInterface.init();
+        stateOutput.init();
     }
 
 
