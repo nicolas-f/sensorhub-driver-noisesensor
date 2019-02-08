@@ -115,6 +115,9 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         if (fastAcousticDataInterface != null) {
             fastAcousticDataInterface.start();
         }
+        if (stateOutput != null) {
+            stateOutput.start();
+        }
         new Timer().schedule(new TimerTask() {
                                  @Override
                                  public void run() {
@@ -136,7 +139,10 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
             slowAcousticDataInterface.stop();
         }
         if (fastAcousticDataInterface != null) {
-            fastAcousticDataInterface.start();
+            fastAcousticDataInterface.stop();
+        }
+        if (stateOutput != null) {
+            stateOutput.stop();
         }
     }
     
