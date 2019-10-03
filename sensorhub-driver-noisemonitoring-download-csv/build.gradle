@@ -1,7 +1,7 @@
 description = 'Weather and Acoustic Sensor'
 group = 'org.noise_planet'
 ext.details = 'Acoustic and weather sensor (leq, humidity and temperature)'
-version = '1.0.0'
+version = '1.1.0'
 
 dependencies {
   compile 'org.sensorhub:sensorhub-core:' + oshCoreVersion

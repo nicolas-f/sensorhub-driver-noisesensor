@@ -56,6 +56,7 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
     WeatherOutput weatherDataInterface;
     SlowAcousticOutput slowAcousticDataInterface;
     FastAcousticOutput fastAcousticDataInterface;
+    SamplesAcousticOutput samplesAcousticDataInterface;
     StateOutput stateOutput;
     // Send sensor location after this delay in millisecond
     private static final int LOCATION_UPDATE_DELAY = 15000;
@@ -75,14 +76,17 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         weatherDataInterface = new WeatherOutput(this);
         slowAcousticDataInterface = new SlowAcousticOutput(this);
         fastAcousticDataInterface = new FastAcousticOutput(this);
+        samplesAcousticDataInterface = new SamplesAcousticOutput(this);
         stateOutput = new StateOutput(this);
         addOutput(weatherDataInterface, false);
         addOutput(slowAcousticDataInterface, false);
         addOutput(fastAcousticDataInterface, false);
+        addOutput(samplesAcousticDataInterface, false);
         addOutput(stateOutput, false);
         weatherDataInterface.init();
         slowAcousticDataInterface.init();
         fastAcousticDataInterface.init();
+        samplesAcousticDataInterface.init();
         stateOutput.init();
     }
 
@@ -115,6 +119,9 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         if (fastAcousticDataInterface != null) {
             fastAcousticDataInterface.start();
         }
+        if (samplesAcousticDataInterface != null) {
+            samplesAcousticDataInterface.start();
+        }
         if (stateOutput != null) {
             stateOutput.start();
         }
@@ -143,6 +150,9 @@ public class NoiseMonitoringSensor extends AbstractSensorModule<NoiseMonitoringC
         }
         if (stateOutput != null) {
             stateOutput.stop();
+        }
+        if (samplesAcousticDataInterface != null) {
+            samplesAcousticDataInterface.stop();
         }
     }
     
