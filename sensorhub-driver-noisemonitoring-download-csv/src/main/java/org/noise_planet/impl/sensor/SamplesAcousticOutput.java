@@ -86,7 +86,7 @@ public class SamplesAcousticOutput extends AbstractSensorOutput<NoiseMonitoringS
     }
 
     public String getUrl() {
-        return getParentModule().getConfiguration().httpSlowAcousticStationUrl;
+        return getParentModule().getConfiguration().httpSamplesAcousticStationUrl;
     }
     
     private void sendMeasurement()
@@ -99,8 +99,6 @@ public class SamplesAcousticOutput extends AbstractSensorOutput<NoiseMonitoringS
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String line;
             DataBlock dataBlock = acousticData.createDataBlock();
-            Map<String, List<Float>> cachedValues = new HashMap<>();
-            int idCol = 0;
             List<DataBlock> dataBlockList = new ArrayList<>();
             while ((line = rd.readLine()) != null) {
                 StringTokenizer tokenizer = new StringTokenizer(line, ",");

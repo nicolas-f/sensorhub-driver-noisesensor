@@ -53,7 +53,7 @@ public class NoiseMonitoringConfig extends SensorConfig
     public LLALocation location = new LLALocation();
 
     @DisplayInfo(label="Http weather server url", desc = "Pull CSV records from this url")
-    public String httpWeatherStationUrl = "http://127.0.0.1:8090/weather";
+    public String httpWeatherStationUrl = "http://127.0.0.1:8085/weather";
 
     @DisplayInfo(label="Http fast acoustic server url", desc = "Pull CSV records from this url")
     public String httpFastAcousticStationUrl = "http://127.0.0.1:8090/fast";
